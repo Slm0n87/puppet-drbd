@@ -22,8 +22,8 @@ define drbd::resource::up (
       require => [
         Exec['modprobe drbd'],
         File["/etc/drbd.d/${name}.res"],
-        ],
-        notify  => Service['drbd']
+      ],
+      notify  => Service['drbd']
     }
   }
 
@@ -35,8 +35,8 @@ define drbd::resource::up (
       require => [
         Exec["initialize DRBD metadata for ${name}"],
         Exec['modprobe drbd']
-        ],
-        notify  => Service['drbd']
+      ],
+      notify  => Service['drbd']
     }
   }
 
@@ -52,16 +52,17 @@ define drbd::resource::up (
         onlyif  => "drbdadm dstate ${name} | egrep '^Inconsistent'",
         notify  => Exec["drbd_format_volume_${name}"],
         before  => Exec["drbd_make_primary_again_${name}"],
-        require => Service['drbd']
+        require => Service['drbd'],
+      }
+      $before = $automount ? {
+        false   => undef,
+        default => Mount[$mountpoint],
       }
       exec { "drbd_format_volume_${name}":
         command     => "mkfs.${fs_type} ${mkfs_opts} ${device}",
         refreshonly => true,
         require     => Exec["drbd_make_primary_${name}"],
-        before      => $automount ? {
-          false   => undef,
-          default => Mount[$mountpoint],
-        },
+        before      => $before,
       }
     }
 
@@ -83,7 +84,7 @@ define drbd::resource::up (
           Exec["drbd_make_primary_again_${name}"],
           File[$mountpoint],
           Service['drbd']
-          ],
+        ],
       }
     }
   }

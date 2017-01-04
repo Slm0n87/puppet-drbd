@@ -5,7 +5,8 @@
 # by an example created by Rackspace's cloudbuilders
 #
 class drbd(
-  $service_enable = true
+  $service_ensure = running,
+  $service_enable = true,
 ) {
   include ::drbd::service
 
